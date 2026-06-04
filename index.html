@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My IPTV</title>
+
+<style>
+body{
+    margin:0;
+    background:#0f0f0f;
+    color:white;
+    font-family:Arial;
+}
+
+header{
+    background:#e50914;
+    padding:15px;
+    text-align:center;
+    font-size:20px;
+    font-weight:bold;
+}
+
+/* 16:9 player */
+.player{
+    width:100%;
+    aspect-ratio:16/9;
+    background:black;
+}
+
+video{
+    width:100%;
+    height:100%;
+}
+
+/* list */
+.channels{
+    height:40vh;
+    overflow:auto;
+    background:#141414;
+}
+
+.item{
+    padding:12px;
+    border-bottom:1px solid #333;
+    cursor:pointer;
+}
+
+.item:hover{
+    background:#e50914;
+}
+</style>
+</head>
+
+<body>
+
+<header>📺 My IPTV Player</header>
+
+<div class="player">
+    <video id="video" controls></video>
+</div>
+
+<div class="channels" id="list"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+
+const video = document.getElementById("video");
+let hls;
+
+// 👉 তোমার playlist file (GitHub বা hosting এ আপলোড করবে)
+const playlistUrl = "playlist.m3u";
+
+async function loadPlaylist(){
+
+    const res = await fetch(playlistUrl);
+    const text = await res.text();
+
+    const lines = text.split("\n");
+    const list = document.getElementById("list");
+
+    let name = "";
+
+    for(let i=0;i<lines.length;i++){
+        let line = lines[i].trim();
+
+        if(line.startsWith("#EXTINF")){
+            name = line.split(",")[1];
+        }
+        else if(line.startsWith("http")){
+            
+            let div = document.createElement("div");
+            div.className = "item";
+            div.innerText = name;
+
+            div.onclick = ()=> play(line);
+
+            list.appendChild(div);
+        }
+    }
+}
+
+// play function
+function play(url){
+    if(hls){ hls.destroy(); }
+
+    if(Hls.isSupported()){
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+    } else {
+        video.src = url;
+    }
+}
+
+loadPlaylist();
+
+</script>
+
+</body>
+</html>
